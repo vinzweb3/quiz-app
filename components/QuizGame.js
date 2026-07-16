@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
 import { buildLadder, fallbackPrize, formatRupiah } from "../lib/prizeLadder";
-import { pickGameQuestions } from "../lib/questionBank";
+import { pickGameQuestions, getRecentQuestionIds, saveRecentQuestionIds } from "../lib/questionBank";
 import {
   primeAudio,
   playCorrectSound,
@@ -142,7 +142,8 @@ export default function QuizGame() {
       setLoadingQuestions(false);
       return;
     }
-    const { questions: picked, warnings } = pickGameQuestions(data);
+    const recentIds = getRecentQuestionIds();
+    const { questions: picked, warnings } = pickGameQuestions(data, undefined, recentIds);
     if (picked.length === 0) {
       setLoadError("Bank soal kosong untuk semua level kesulitan. Cek tabel 'questions' di Supabase.");
       setLoadingQuestions(false);
@@ -152,6 +153,10 @@ export default function QuizGame() {
       // Tetap jalan walau soal kurang dari target per level, cuma kasih tau di console.
       console.warn(warnings.join(" "));
     }
+    saveRecentQuestionIds(
+      picked.map((q) => q.id),
+      recentIds
+    );
     setQuestions(picked);
     setLoadingQuestions(false);
   };

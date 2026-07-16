@@ -4,7 +4,11 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
 import { buildLadder, fallbackPrize, formatRupiah } from "../lib/prizeLadder";
-import { pickGameQuestions, getRecentQuestionIds, saveRecentQuestionIds } from "../lib/questionBank";
+import {
+  pickGameQuestions,
+  getRecentQuestionIds,
+  saveRecentQuestionIds,
+} from "../lib/questionBank";
 import {
   primeAudio,
   playCorrectSound,
@@ -142,6 +146,8 @@ export default function QuizGame() {
       setLoadingQuestions(false);
       return;
     }
+    // Soal-soal yang baru aja muncul di beberapa game terakhir (disimpan di
+    // localStorage browser ini) -- di-exclude dulu biar gak langsung keulang.
     const recentIds = getRecentQuestionIds();
     const { questions: picked, warnings } = pickGameQuestions(data, undefined, recentIds);
     if (picked.length === 0) {
@@ -153,6 +159,8 @@ export default function QuizGame() {
       // Tetap jalan walau soal kurang dari target per level, cuma kasih tau di console.
       console.warn(warnings.join(" "));
     }
+    // Simpen id soal yang baru dipilih ini ke histori, biar game BERIKUTNYA
+    // menghindarinya dulu (sampai histori penuh dan entri lama otomatis gugur).
     saveRecentQuestionIds(
       picked.map((q) => q.id),
       recentIds
